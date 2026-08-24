@@ -89,6 +89,29 @@ def generate(
     return answer
 
 
+async def generate_async(
+    question: str,
+    chunks: list[ScoredChunk],
+    api_key: str | None = None,
+    model: str | None = None,
+) -> str:
+    """
+    Generate a complete answer using Groq asynchronously.
+    """
+    client = AsyncGroq(api_key=api_key or settings.groq_api_key)
+    messages = _build_messages(question, chunks)
+
+    response = await client.chat.completions.create(
+        model=model or settings.llm_model,
+        messages=messages,
+        temperature=0.1,
+        max_tokens=1024,
+    )
+
+    answer = response.choices[0].message.content or ""
+    return answer
+
+
 async def generate_stream(
     question: str,
     chunks: list[ScoredChunk],

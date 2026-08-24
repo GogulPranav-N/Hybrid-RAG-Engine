@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from sse_starlette import EventSourceResponse
 
 from src.api.dependencies import app_state
-from src.generation.llm import generate, generate_stream
+from src.generation.llm import generate_async, generate_stream
 from src.models import QueryRequest, QueryResponse, SearchMode, ScoredChunk
 from src.observability.tracing import traced_span
 from src.retrieval.dense import dense_search
@@ -120,7 +120,7 @@ async def query_documents(request: QueryRequest) -> QueryResponse:
     # Generate
     with traced_span("generation", {"mode": request.mode.value}) as span:
         t0 = time.perf_counter()
-        answer = generate(request.question, chunks)
+        answer = await generate_async(request.question, chunks)
         timings["generation"] = time.perf_counter() - t0
         span["answer_length"] = len(answer)
 

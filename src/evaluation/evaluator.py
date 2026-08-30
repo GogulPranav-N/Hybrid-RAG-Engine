@@ -44,20 +44,11 @@ async def evaluate_pipeline(
     if test_set is None:
         test_set = load_test_set()
 
+    # Attempt to import optional Ragas metrics if available in environment
     try:
-        from ragas.metrics import (
-            ContextPrecision,
-            ContextRecall,
-            Faithfulness,
-        )
-    except ImportError:
-        # Fallback for newer Ragas versions with different import paths
-        logger.warning("Using fallback Ragas import path")
-        from ragas.metrics import (
-            context_precision as ContextPrecision,
-            context_recall as ContextRecall,
-            faithfulness as Faithfulness,
-        )
+        from ragas.metrics import ContextPrecision, ContextRecall, Faithfulness
+    except Exception:
+        pass
 
     results: list[dict[str, Any]] = []
 

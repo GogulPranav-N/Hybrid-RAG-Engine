@@ -10,7 +10,7 @@ import httpx
 import streamlit as st
 
 # ── Configuration ─────────────────────────────────────────────
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 MODES = {
     "Naive (Vector Only)": "naive",
     "Hybrid (Vector + BM25)": "hybrid",

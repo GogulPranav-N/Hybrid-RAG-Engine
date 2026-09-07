@@ -29,6 +29,8 @@ models/
 
 # Docker
 qdrant_data/
+qdrant_storage/
+
 
 # Evaluation outputs
 evaluation_results.json

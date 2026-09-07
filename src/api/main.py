@@ -63,3 +63,15 @@ app.add_middleware(
 app.include_router(health.router, tags=["Health"])
 app.include_router(ingest.router, prefix="/ingest", tags=["Ingestion"])
 app.include_router(query.router, prefix="/query", tags=["Query"])
+
+
+@app.get("/", tags=["Root"])
+async def root():
+    """Root endpoint providing quick links to API documentation and system status."""
+    return {
+        "message": "Welcome to Hybrid RAG Engine API",
+        "docs_url": "/docs",
+        "health_url": "/health",
+        "status": "running",
+    }
+

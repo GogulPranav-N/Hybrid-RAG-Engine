@@ -39,14 +39,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Enterprise Styling (Clean CSS, Zero Emojis) ───────────────
+# ── Enterprise Styling ────────────────────────────────────────
 st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-    html, body, [class*="css"], .stMarkdown, p, div, span, button {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    /* Global typography */
+    body, .stMarkdown, p {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     code, pre, .mono {
@@ -63,7 +64,7 @@ st.markdown(
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 20px;
+        padding: 16px 22px;
         background: #111620;
         border: 1px solid #1e2638;
         border-radius: 8px;
@@ -71,7 +72,7 @@ st.markdown(
     }
 
     .brand-title {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         font-weight: 700;
         color: #f1f5f9;
         letter-spacing: -0.01em;
@@ -88,9 +89,9 @@ st.markdown(
     .tech-pill {
         display: inline-flex;
         align-items: center;
-        padding: 3px 8px;
+        padding: 4px 10px;
         border-radius: 4px;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 600;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -109,14 +110,57 @@ st.markdown(
         color: #a5b4fc;
     }
 
-    /* Metric Cards */
-    .metric-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
+    /* Custom Chat Message Cards */
+    .msg-box-user {
+        background: #131926;
+        border: 1px solid #1f293d;
+        border-left: 3px solid #38bdf8;
+        border-radius: 6px;
+        padding: 14px 16px;
+        margin: 12px 0;
     }
 
+    .msg-box-assistant {
+        background: #0f141d;
+        border: 1px solid #1b2333;
+        border-left: 3px solid #10b981;
+        border-radius: 6px;
+        padding: 16px 18px;
+        margin: 12px 0;
+    }
+
+    .msg-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .msg-role-user {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .msg-role-assistant {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #10b981;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .msg-content {
+        color: #e2e8f0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    /* Metric Cards */
     .metric-card {
         background: #111620;
         border: 1px solid #1e2638;
@@ -146,10 +190,10 @@ st.markdown(
 
     /* Chunk Cards */
     .chunk-container {
-        background: #0f141c;
-        border: 1px solid #1e2638;
+        background: #0d1118;
+        border: 1px solid #1a2232;
         border-radius: 6px;
-        padding: 14px;
+        padding: 12px 14px;
         margin: 8px 0;
     }
 
@@ -157,21 +201,21 @@ st.markdown(
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 8px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid #1a2232;
+        margin-bottom: 6px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #161d2b;
     }
 
     .chunk-filename {
         color: #38bdf8;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 600;
     }
 
     .chunk-tag {
         padding: 2px 6px;
         border-radius: 4px;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         font-weight: 600;
         text-transform: uppercase;
     }
@@ -368,47 +412,62 @@ with tab_chat:
             if st.button(label, key=f"q_{i}", use_container_width=True):
                 st.session_state.pending_prompt = text
 
-    # Render Chat History
+    # Render Chat History with Clean Card Layout
     for msg in st.session_state.messages:
-        role_label = "USER" if msg["role"] == "user" else "ASSISTANT"
-        with st.chat_message(msg["role"]):
-            st.markdown(f"**{role_label}**\n\n{msg['content']}")
-            if msg.get("chunks"):
-                with st.expander(f"Retrieved Context Chunks ({len(msg['chunks'])})", expanded=False):
-                    for idx, sc in enumerate(msg["chunks"], 1):
-                        chunk = sc.get("chunk", {})
-                        source = chunk.get("source", "doc")
-                        filename = source.rsplit("/", 1)[-1]
-                        score = sc.get("score", 0.0)
-                        method = sc.get("source_method", "reranked")
-                        text_body = chunk.get("text", "")
-                        tokens = chunk.get("token_count", 0)
-                        chunk_i = chunk.get("chunk_index", 0)
+        is_user = msg["role"] == "user"
+        box_class = "msg-box-user" if is_user else "msg-box-assistant"
+        role_class = "msg-role-user" if is_user else "msg-role-assistant"
+        role_title = "USER QUERY" if is_user else "ENGINE RESPONSE"
 
-                        tag_class = (
-                            "chunk-tag-rerank" if "rerank" in method.lower()
-                            else "chunk-tag-dense" if "dense" in method.lower()
-                            else "chunk-tag-sparse"
-                        )
+        st.markdown(
+            f"""
+            <div class="{box_class}">
+                <div class="msg-header">
+                    <span class="{role_class}">{role_title}</span>
+                </div>
+                <div class="msg-content">{msg['content']}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-                        st.markdown(
-                            f"""
-                            <div class="chunk-container">
-                                <div class="chunk-meta-row">
-                                    <span class="chunk-filename">{filename} (Chunk {chunk_i}, {tokens} tokens)</span>
-                                    <span class="chunk-tag {tag_class}">{method} | Score: {score:.4f}</span>
-                                </div>
-                                <div class="chunk-body">{text_body}</div>
+        if not is_user and msg.get("chunks"):
+            with st.expander(f"Retrieved Context Chunks ({len(msg['chunks'])})", expanded=False):
+                for idx, sc in enumerate(msg["chunks"], 1):
+                    chunk = sc.get("chunk", {})
+                    source = chunk.get("source", "doc")
+                    filename = source.rsplit("/", 1)[-1]
+                    score = sc.get("score", 0.0)
+                    method = sc.get("source_method", "reranked")
+                    text_body = chunk.get("text", "")
+                    tokens = chunk.get("token_count", 0)
+                    chunk_i = chunk.get("chunk_index", 0)
+
+                    tag_class = (
+                        "chunk-tag-rerank" if "rerank" in method.lower()
+                        else "chunk-tag-dense" if "dense" in method.lower()
+                        else "chunk-tag-sparse"
+                    )
+
+                    st.markdown(
+                        f"""
+                        <div class="chunk-container">
+                            <div class="chunk-meta-row">
+                                <span class="chunk-filename">{filename} (Chunk {chunk_i}, {tokens} tokens)</span>
+                                <span class="chunk-tag {tag_class}">{method} | Score: {score:.4f}</span>
                             </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-            if msg.get("timings"):
-                thtml = "".join(
-                    f'<span class="timing-badge">{k}: <b>{v*1000:.1f}ms</b></span>'
-                    for k, v in msg["timings"].items()
-                )
-                st.markdown(f"<div style='margin-top:6px;'>{thtml}</div>", unsafe_allow_html=True)
+                            <div class="chunk-body">{text_body}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+        if not is_user and msg.get("timings"):
+            thtml = "".join(
+                f'<span class="timing-badge">{k}: <b>{v*1000:.1f}ms</b></span>'
+                for k, v in msg["timings"].items()
+            )
+            st.markdown(f"<div style='margin-bottom:12px;'>{thtml}</div>", unsafe_allow_html=True)
 
     # Streaming API Function
     def stream_query(question: str, mode_val: str, k_val: int) -> Generator[tuple[str, list, dict], None, None]:
@@ -451,77 +510,107 @@ with tab_chat:
     if active_prompt:
         st.session_state.pending_prompt = None
 
+        # User Query Box
         st.session_state.messages.append({"role": "user", "content": active_prompt})
-        with st.chat_message("user"):
-            st.markdown(f"**USER**\n\n{active_prompt}")
+        st.markdown(
+            f"""
+            <div class="msg-box-user">
+                <div class="msg-header">
+                    <span class="msg-role-user">USER QUERY</span>
+                </div>
+                <div class="msg-content">{active_prompt}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-        with st.chat_message("assistant"):
-            st.markdown("**ASSISTANT**")
-            placeholder = st.empty()
-            full_text = ""
-            final_chunks = []
-            final_timings = {}
+        # Assistant Response Container
+        assistant_card = st.empty()
+        full_text = ""
+        final_chunks = []
+        final_timings = {}
 
-            try:
-                for token_piece, c_list, t_dict in stream_query(active_prompt, current_mode, top_k):
-                    full_text += token_piece
-                    placeholder.markdown(full_text + "▌")
-                    if c_list:
-                        final_chunks = c_list
-                    if t_dict:
-                        final_timings = t_dict
-
-                placeholder.markdown(full_text)
-
-                if final_chunks:
-                    with st.expander(f"Retrieved Context Chunks ({len(final_chunks)})", expanded=False):
-                        for idx, sc in enumerate(final_chunks, 1):
-                            chunk = sc.get("chunk", {})
-                            source = chunk.get("source", "doc")
-                            filename = source.rsplit("/", 1)[-1]
-                            score = sc.get("score", 0.0)
-                            method = sc.get("source_method", "reranked")
-                            text_body = chunk.get("text", "")
-                            tokens = chunk.get("token_count", 0)
-                            chunk_i = chunk.get("chunk_index", 0)
-
-                            tag_class = (
-                                "chunk-tag-rerank" if "rerank" in method.lower()
-                                else "chunk-tag-dense" if "dense" in method.lower()
-                                else "chunk-tag-sparse"
-                            )
-
-                            st.markdown(
-                                f"""
-                                <div class="chunk-container">
-                                    <div class="chunk-meta-row">
-                                        <span class="chunk-filename">{filename} (Chunk {chunk_i}, {tokens} tokens)</span>
-                                        <span class="chunk-tag {tag_class}">{method} | Score: {score:.4f}</span>
-                                    </div>
-                                    <div class="chunk-body">{text_body}</div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True,
-                            )
-
-                if final_timings:
-                    thtml = "".join(
-                        f'<span class="timing-badge">{k}: <b>{v*1000:.1f}ms</b></span>'
-                        for k, v in final_timings.items()
-                    )
-                    st.markdown(f"<div style='margin-top:6px;'>{thtml}</div>", unsafe_allow_html=True)
-
-                st.session_state.messages.append(
-                    {
-                        "role": "assistant",
-                        "content": full_text,
-                        "chunks": final_chunks,
-                        "timings": final_timings,
-                    }
+        try:
+            for token_piece, c_list, t_dict in stream_query(active_prompt, current_mode, top_k):
+                full_text += token_piece
+                assistant_card.markdown(
+                    f"""
+                    <div class="msg-box-assistant">
+                        <div class="msg-header">
+                            <span class="msg-role-assistant">ENGINE RESPONSE</span>
+                        </div>
+                        <div class="msg-content">{full_text}▌</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
+                if c_list:
+                    final_chunks = c_list
+                if t_dict:
+                    final_timings = t_dict
 
-            except Exception as ex:
-                st.error(f"Execution Error: {ex}")
+            # Final static render without cursor
+            assistant_card.markdown(
+                f"""
+                <div class="msg-box-assistant">
+                    <div class="msg-header">
+                        <span class="msg-role-assistant">ENGINE RESPONSE</span>
+                    </div>
+                    <div class="msg-content">{full_text}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            if final_chunks:
+                with st.expander(f"Retrieved Context Chunks ({len(final_chunks)})", expanded=False):
+                    for idx, sc in enumerate(final_chunks, 1):
+                        chunk = sc.get("chunk", {})
+                        source = chunk.get("source", "doc")
+                        filename = source.rsplit("/", 1)[-1]
+                        score = sc.get("score", 0.0)
+                        method = sc.get("source_method", "reranked")
+                        text_body = chunk.get("text", "")
+                        tokens = chunk.get("token_count", 0)
+                        chunk_i = chunk.get("chunk_index", 0)
+
+                        tag_class = (
+                            "chunk-tag-rerank" if "rerank" in method.lower()
+                            else "chunk-tag-dense" if "dense" in method.lower()
+                            else "chunk-tag-sparse"
+                        )
+
+                        st.markdown(
+                            f"""
+                            <div class="chunk-container">
+                                <div class="chunk-meta-row">
+                                    <span class="chunk-filename">{filename} (Chunk {chunk_i}, {tokens} tokens)</span>
+                                    <span class="chunk-tag {tag_class}">{method} | Score: {score:.4f}</span>
+                                </div>
+                                <div class="chunk-body">{text_body}</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+            if final_timings:
+                thtml = "".join(
+                    f'<span class="timing-badge">{k}: <b>{v*1000:.1f}ms</b></span>'
+                    for k, v in final_timings.items()
+                )
+                st.markdown(f"<div style='margin-bottom:12px;'>{thtml}</div>", unsafe_allow_html=True)
+
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": full_text,
+                    "chunks": final_chunks,
+                    "timings": final_timings,
+                }
+            )
+
+        except Exception as ex:
+            st.error(f"Execution Error: {ex}")
 
 
 # ═══════════════════════════════════════════════════════════════

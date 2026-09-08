@@ -45,13 +45,16 @@ def index_to_qdrant(
     vector_size = len(embeddings[0])
 
     # Recreate collection for clean state
-    client.recreate_collection(
+    if client.collection_exists(collection):
+        client.delete_collection(collection)
+    client.create_collection(
         collection_name=collection,
         vectors_config=models.VectorParams(
             size=vector_size,
             distance=models.Distance.COSINE,
         ),
     )
+
     logger.info(
         "Created Qdrant collection '%s' (dim=%d, cosine)",
         collection,

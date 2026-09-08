@@ -35,7 +35,15 @@ class AppState:
         self.cross_encoder = CrossEncoder(settings.reranker_model)
 
         logger.info("Connecting to Qdrant: %s", settings.qdrant_url)
-        self.qdrant_client = QdrantClient(url=settings.qdrant_url)
+        try:
+            client = QdrantClient(url=settings.qdrant_url, timeout=3.0)
+            client.get_collections()
+            self.qdrant_client = client
+            logger.info("Connected to remote Qdrant service at %s", settings.qdrant_url)
+        except Exception as e:
+            logger.warning("Could not connect to Qdrant service at %s (%s). Falling back to local embedded storage.", settings.qdrant_url, e)
+            self.qdrant_client = QdrantClient(path="./qdrant_storage")
+
 
         # Try to load BM25 index (may not exist yet before first ingestion)
         try:
